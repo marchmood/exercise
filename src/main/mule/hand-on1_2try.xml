@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="abadcf18-c8cf-4f9e-a540-bd2f5ebb38d5" >
+		<http:listener-connection host="0.0.0.0" port="8089" />
+	</http:listener-config>
+	<flow name="hand-on1_2tryFlow" doc:id="fe8cf658-7b5f-464b-9139-125598a5d1b0" >
+		<http:listener doc:name="Listener" doc:id="5323a9a7-07fa-470c-810b-465971223766" config-ref="HTTP_Listener_config" path="goodtry"/>
+		<logger level="INFO" doc:name="Logger" doc:id="d6d5a33b-f9ee-454e-b316-7464dafd3e96" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="9e6ea7ee-01e4-49f9-a8be-2eb7760e1af5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  invoiceNumber: trim(payload.Invoice.InvoiceNumber),
+  invoiceDate: payload.Invoice.InvoiceDate,
+  invoiceType: payload.Invoice.InvoiceType,
+  yougogirl: (if (payload.Invoice.Items is Array) 
+               payload.Invoice.Items 
+             else 
+               [payload.Invoice.Items]) 
+             map (omg) -> {
+               itemNumber: omg.ItemNumber,
+               materialId: trim(upper(omg.MaterialId)),
+               description: trim(omg.Description),
+               quantity: omg.Quantity,
+               price: omg.Price,
+               totalAmount: omg.TotalAmount
+             }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
